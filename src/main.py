@@ -1,29 +1,29 @@
-# import tensorflow as tf
-# import tf2onnx
+import tensorflow as tf
+import tf2onnx
+import subprocess
 
-# # 簡単なTensorFlowモデルを定義
-# class SimpleModel(tf.keras.Model):
-#     def __init__(self):
-#         super(SimpleModel, self).__init__()
-#         self.dense = tf.keras.layers.Dense(10, activation='relu')
+# 簡単なTensorFlowモデルを定義
+class SimpleModel(tf.keras.Model):
+    def __init__(self):
+        super(SimpleModel, self).__init__()
+        self.dense = tf.keras.layers.Dense(10, activation='relu')
     
-#     def call(self, inputs):
-#         return self.dense(inputs)
+    def call(self, inputs):
+        return self.dense(inputs)
 
-# # モデルインスタンスを作成
-# model = SimpleModel()
+# モデルインスタンスを作成
+model = SimpleModel()
 
 # モデルの保存ディレクトリ
 saved_model_dir = "simple_model"
 
 # モデルを保存する
-# input_shape = (1, 5)  # 入力の形状 (バッチサイズ, 入力特徴数)
-# dummy_input = tf.random.normal(input_shape)
-# model(dummy_input)  # モデルを呼び出して初期化
-# tf.saved_model.save(model, saved_model_dir)
+input_shape = (1, 5)  # 入力の形状 (バッチサイズ, 入力特徴数)
+dummy_input = tf.random.normal(input_shape)
+model(dummy_input)  # モデルを呼び出して初期化
+tf.saved_model.save(model, saved_model_dir)
 
 # ONNXへの変換
-import subprocess
 
 # TensorFlowモデルをONNXに変換するためのコマンド
 command = [
