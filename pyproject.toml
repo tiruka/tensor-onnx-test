@@ -1,0 +1,28 @@
+[project]
+name = "tensor-onnx-test"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "tiruka", email = "tiruka.engineer@gmail.com" }
+]
+dependencies = [
+    "tf2onnx>=1.16.1",
+    "tensorflow>=2.18.0",
+    "numpy<2.0"
+]
+readme = "README.md"
+requires-python = ">= 3.10"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tensor_onnx_test"]
