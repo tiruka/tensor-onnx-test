@@ -35,9 +35,14 @@ def one_hot_torch(indices, depth, on_value=1, off_value=0, axis=-1, dtype=None):
     # Determine the dtype of the output tensor
     dtype = dtype if dtype else torch.float32 if isinstance(on_value, float) else torch.int64
 
-    # Create a tensor of the same shape as indices, filled with off_value
-    shape = list(indices.shape)
+    # Create a mask for valid indices (0 <= index < depth)
+    valid_mask = (indices >= 0) & (indices < depth)
 
+    # Clamp invalid indices to 0 to avoid scatter errors
+    safe_indices = torch.where(valid_mask, indices, torch.zeros_like(indices))
+
+    # Create the shape for the output tensor
+    shape = list(indices.shape)
     if axis == -1:
         shape.append(depth)
     elif axis == 0:
@@ -48,31 +53,41 @@ def one_hot_torch(indices, depth, on_value=1, off_value=0, axis=-1, dtype=None):
     # Initialize the result tensor with off_value
     result = torch.full(shape, off_value, dtype=dtype)
 
-    # Expand indices to match the result's shape
+    # Expand indices for scatter
     if axis == -1:
-        # Add an additional dimension at the end for depth
-        indices = indices.unsqueeze(-1)
-        # Scatter on_value into the result tensor
-        result.scatter_(-1, indices, on_value)
+        indices_unsqueezed = safe_indices.unsqueeze(-1)
+        result.scatter_(-1, indices_unsqueezed, on_value)
     elif axis == 0:
-        # Add an additional dimension at the start for depth
-        indices = indices.unsqueeze(0)
-        # Scatter on_value into the result tensor
-        result.scatter_(0, indices, on_value)
+        indices_unsqueezed = safe_indices.unsqueeze(0)
+        result.scatter_(0, indices_unsqueezed, on_value)
+    
+    # Ensure invalid indices remain off_value
+    if not valid_mask.all():
+        result[~valid_mask] = off_value
     
     return result
 
 
 # Examples
+
 indices = [0, 1, 2]
 depth = 3
-print(one_hot_numpy(indices, depth))
-print(one_hot_torch(indices, depth))
+print("#" * 30)
+print(f"inputs: {indices=}, {depth=}")
+print("numpy\n", one_hot_numpy(indices, depth))
+print("torch\n", one_hot_torch(indices, depth))
 
-# indices = [0, 2, -1, 1]
-# depth = 3
-# print(one_hot_numpy(indices, depth, on_value=5, off_value=0))
+indices = [0, 2, -1, 1]
+depth = 3
+print("#" * 30)
+print(f"inputs: {indices=}, {depth=}")
+print("numpy\n", one_hot_numpy(indices, depth, on_value=5.0, off_value=0.0))
+print("torch\n", one_hot_torch(indices, depth, on_value=5.0, off_value=0.0))
 
-# indices = [[0, 2], [1, -1]]
-# depth = 3
-# print(one_hot_numpy(indices, depth, on_value=1, off_value=0, axis=-1))
+
+indices = [[0, 2], [1, -1]]
+depth = 3
+print("#" * 30)
+print(f"inputs: {indices=}, {depth=}")
+print("numpy\n", one_hot_numpy(indices, depth))
+print("torch\n", one_hot_torch(indices, depth))

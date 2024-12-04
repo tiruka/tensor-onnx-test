@@ -6,9 +6,11 @@ authors = [
     { name = "tiruka", email = "tiruka.engineer@gmail.com" }
 ]
 dependencies = [
+    "torch>=2.3.1",
+    "onnx>=1.16.1",
+    "onnxruntime>=1.18.0",
     "tf2onnx>=1.16.1",
     "tensorflow>=2.18.0",
-    "numpy<2.0"
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
