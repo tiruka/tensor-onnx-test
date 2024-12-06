@@ -22,7 +22,7 @@ def one_hot_numpy(indices, depth, on_value=1, off_value=0, axis=-1, dtype=None):
     elif axis == 0:
         # First axis
         for idx, index in np.ndenumerate(indices):
-            if 0 <= index < depth:
+            if -1 * depth <= index < depth:
                 result[(index,) + idx] = on_value
     else:
         raise ValueError("Only axis=-1 or axis=0 are supported in this simplified implementation.")
@@ -35,11 +35,13 @@ def one_hot_torch(indices, depth, on_value=1, off_value=0, axis=-1, dtype=None):
     # Determine the dtype of the output tensor
     dtype = dtype if dtype else torch.float32 if isinstance(on_value, float) else torch.int64
 
-    # Create a mask for valid indices (0 <= index < depth)
-    valid_mask = (indices >= 0) & (indices < depth)
+    # Create a mask for valid indices (-depth <= index < depth)
+    valid_mask = (-1 * depth <= indices) & (indices < depth)
+    # Adjust negative indices to positive range
+    adjusted_indices = torch.where(indices < 0, indices + depth, indices)
 
     # Clamp invalid indices to 0 to avoid scatter errors
-    safe_indices = torch.where(valid_mask, indices, torch.zeros_like(indices))
+    safe_indices = torch.where(valid_mask, adjusted_indices, torch.zeros_like(indices))
 
     # Create the shape for the output tensor
     shape = list(indices.shape)
@@ -62,9 +64,8 @@ def one_hot_torch(indices, depth, on_value=1, off_value=0, axis=-1, dtype=None):
         result.scatter_(0, indices_unsqueezed, on_value)
     
     # Ensure invalid indices remain off_value
-    if not valid_mask.all():
-        result[~valid_mask] = off_value
-    
+    # if not valid_mask.all():
+    #     result[~valid_mask] = off_value
     return result
 
 
